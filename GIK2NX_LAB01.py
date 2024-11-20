@@ -5,28 +5,133 @@
 # Thomas Stabforsmo Norell
 
 import spade
+from spade.agent import Agent
+from spade.behaviour import FSMBehaviour, State
+from spade.message import Message
+import random
+import operator
 
-# class DummyAgent(spade.agent.Agent):
-#     async def setup(self):
-#         print("Hello World! I'm agent {}".format(str(self.jid)))
+STATE_ONE = "START"
+STATE_TWO = "GENERATE_QUESTION"
+STATE_THREE = "PRESENT_QUESTION"
+STATE_FOUR = "CHECK_ANSWER"
+STATE_FIVE = "SCORE"
+STATE_SIX = "END"
 
-# async def main():
-#     dummy = DummyAgent("monatlilijabber.cz@", "jagskainteglommamittlosenord")
-#     await dummy.start()
+def generate_question():
+    operators = {
+        1: ('+', operator.add, (1, 1000)), 
+        2: ('-', operator.sub, (1, 1000)), 
+        3: ('*', operator.mul, (1, 12)), 
+        4: ('/', operator.floordiv, (1, 12))
+    }
+    
+    dice_roll = random.randint(1, 4) 
+    symbol, operation, bounds = operators[dice_roll]
+    
+    if symbol == '/':  
+        while True: 
+            num1 = random.randint(1, bounds[1])
+            num2 = random.randint(1, bounds[1])
+            if num2 != 0 and num1 % num2 == 0:
+                break
+    elif symbol == '-':
+        num1 = random.randint(bounds[0], bounds[1])
+        num2 = random.randint(bounds[0], num1)    
+    else:
+        num1 = random.randint(bounds[0], bounds[1]) 
+        num2 = random.randint(bounds[0], bounds[1])
+    
+    return num1, symbol, num2, operation(num1, num2)
 
-# if __name__ == "__main__":
-#     spade.run(main())
+class MathBustersFSM(FSMBehaviour):
+    async def on_start(self): 
+        print(f"Agent starting FSM game in {self.current_state}")
 
-class DummyAgent(spade.agent.Agent):
+    async def on_end(self):
+        print(f"FSM finished at state {self.current_state}")
+        await self.agent.stop() 
+
+class StartState(State):
+    async def run(self):
+        print("Welcome to MathBusters!")
+        print("An interactive math game where you can earn points by answering questions correctly.")
+        self.set_next_state(STATE_TWO)
+
+class GenerateQuestionState(State):
+    async def run(self):
+        for i in range(1, total_questions + 1): 
+            num1, symbol, num2, correct_answer = generate_question()
+            attempts = 0
+        self.set_next_state(STATE_THREE)
+
+class PresentQuestionState(State):
+    async def run(self):
+       
+        # no final state is setted, since this is a final state'
+        self.set_next_state(STATE_FOUR)
+
+class CheckAnswerState(State):
+    async def run(self):
+        print("I'm at state three (final state)")
+        msg = await self.receive(timeout=5)
+        print(f"State Three received message {msg.body}")
+        self.set_next_state(STATE_FIVE)
+
+class ScoreState(State): 
+    async def run(self):
+        print("I'm at state three (final state)")
+        msg = await self.receive(timeout=5)
+        print(f"State Three received message {msg.body}")
+        self.set_next_state(STATE_SIX)
+
+class EndState(State):
+    async def run(self):
+        print("I'm at state three (final state)")
+        msg = await self.receive(timeout=5)
+        print(f"State Three received message {msg.body}")
+        self.set_next_state("??")
+
+class FSMAgent(Agent):
     async def setup(self):
-        print("Hello! I'm agent {}".format(str(self.jid)), "pew pew")
+        fsm = MathBustersFSM()
+        fsm.add_state(name=STATE_ONE, state=StartState(), initial=True)
+        fsm.add_state(name=STATE_TWO, state=GenerateQuestionState())
+        fsm.add_state(name=STATE_THREE, state=PresentQuestionState())
+        fsm.add_state(name=STATE_FOUR, state=CheckAnswerState())
+        fsm.add_state(name=STATE_FIVE, state=ScoreState())
+        fsm.add_state(name=STATE_SIX, state=EndState())
+        
+        fsm.add_transition(source=STATE_ONE, dest=STATE_TWO)
+        fsm.add_transition(source=STATE_TWO, dest=STATE_THREE)
+        fsm.add_transition(source=STATE_THREE, dest=STATE_FOUR)
+        fsm.add_transition(source=STATE_FOUR, dest=STATE_FIVE)
+        fsm.add_transition(source=STATE_FIVE, dest=STATE_SIX)
+        self.add_behaviour(fsm)
+
 
 async def main():
-    dummy = DummyAgent("thompe@jabbers.one", "Jagkommerglommamitt")
-    await dummy.start()
+    fsmagent = FSMAgent("filledill@jabbers.one", "Jagharredanglomtmitt")
+    await fsmagent.start()
+
+    await spade.wait_until_finished(fsmagent)
+    await fsmagent.stop()
+    print("Agent finished")
 
 if __name__ == "__main__":
     spade.run(main())
+
+
+# class DummyAgent(spade.agent.Agent):
+#     async def setup(self):
+#         print("Hello! I'm agent {}".format(str(self.jid)), "pew pew")
+
+# async def main(): 
+#     dummy = DummyAgent("thompe@jabbers.one", "Jagkommerglommamitt")
+#     await dummy.start()
+
+# if __name__ == "__main__": 
+#     spade.run(main()) 
 
 
 # Creating an agent with behaviours
@@ -53,7 +158,7 @@ if __name__ == "__main__":
 #         self.add_behaviour(b)
 
 # async def main():
-#     dummy = DummyAgent("your_jid@your_xmpp_server", "your_password")
+#     dummy = DummyAgent("thompe@jabbers.one", "Jagkommerglommamitt")
 #     await dummy.start()
 #     print("DummyAgent started. Check its console to see the output.")
 
