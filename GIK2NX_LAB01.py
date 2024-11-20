@@ -1,3 +1,9 @@
+# Authored by:
+# Mona Tlili
+# Nicklas Kjellbom
+# Filip Lindgren Dewari
+# Thomas Stabforsmo Norell
+
 import spade
 
 class DummyAgent(spade.agent.Agent):
