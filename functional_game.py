@@ -25,12 +25,8 @@ def generate_question():
 
     # Only divisions that results in whole numbers is allowed.
     if symbol == '/':
-        while True:
-            num1 = random.randint(1, bounds[1])
-            num2 = random.randint(1, bounds[1])
-            if num2 != 0 and num1 % num2 == 0:
-                break
-    # Ensure non-negative results for subtraction by limiting making the upper limit of num2 = num 1
+        num2 = random.randint(bounds[0], bounds[1])  
+        num1 = num2 * random.randint(1, 12)
     elif symbol == '-':
         num1 = random.randint(bounds[0], bounds[1])
         num2 = random.randint(bounds[0], num1)
@@ -54,6 +50,24 @@ class MathBustersFSM(FSMBehaviour):
 class StartState(State):
     async def run(self):
         print("[GameMaster] Welcome to MathBusters!")
+        
+        # Prompt the user for the number of questions
+        while True:
+            try:
+                max_questions = int(input("[GameMaster] How many questions would you like to answer? "))
+                if max_questions <= 0:
+                    raise ValueError("The number of questions must be positive.")
+                break
+            except ValueError as e:
+                print(f"[GameMaster] Invalid input: {e}. Please enter a positive integer.")
+        
+        # Set the shared attributes in the agent
+        self.agent.max_questions = max_questions
+        self.agent.points = max_questions
+        
+        print(f"[GameMaster] Great! You'll answer {self.agent.max_questions} questions. Let's get started!")
+        
+        # Set the next state
         self.set_next_state(STATE_TWO)
 
 # The state responsible for generating a new question
@@ -101,11 +115,9 @@ class CheckAnswerState(State):
             print("[GameMaster] Invalid input. Please enter a number.")
             self.set_next_state(STATE_THREE)  # Retry the same question
 
-# The final state of the game
+# The state of the game
 class ScoreState(State):
     async def run(self):
-        """Displays the final score and ends the game."""
-        print(f"[GameMaster] Your score: {self.agent.points}")
         if self.agent.current_question < self.agent.max_questions:
             self.agent.current_question += 1
             self.set_next_state(STATE_TWO)
@@ -114,6 +126,7 @@ class ScoreState(State):
 
 class EndState(State):
     async def run(self):
+        """Displays the final score and ends the game."""
         print(f"[GameMaster] Game over! Final score: {self.agent.points}")
         self.kill()
 
@@ -124,11 +137,12 @@ class MathBustersAgent(Agent):
         - Configures and starts the FSMBehaviour with defined states and transitions.
     """
     async def setup(self):
-        self.max_questions = 2
+        self.max_questions = 0  # Value is chosen by the player
+        self.points = 0  # Value is chosen by the player
         self.current_question = 1
-        self.points = 5
         self.attempts = 3
-
+        
+        
         fsm = MathBustersFSM()
         fsm.add_state(name=STATE_ONE, state=StartState(), initial=True)
         fsm.add_state(name=STATE_TWO, state=GenerateQuestionState())
