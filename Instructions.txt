@@ -1,0 +1,19 @@
+Implement an FSM with minimum of six states including start and end. You will need to use the
+advanced behaviors from SPADE framework.
+
+Create a game, use your imagination. Earlier years we’ve had games about a woodchopper, cutting
+down wood before it already was downed by birds. A knight fighting different bosses. A runner trying
+to catch the bus and so on. Some student added pictures based on either victory or defeat, some added
+randomized values, so the games never ended the same way, making it interesting every time.
+
+The FSM Machine can easily “only be a counter”, state X goes to Z and increases every time, when X
+reaches a limit, it goes to state Y. Done. Well, this lab is about understanding the behaviors and
+applying your own touch and knowledge so make it a game not just a counter.
+
+The game could work independently or ask/prompt the user for inputs, it’s up to you.
+
+Comment the code on a level as you would explain it to a fellow student, I don’t want to read “this is
+a string, string is when letters are used” or summarization such as: This is the state A. This is state B
+end. Make it the way you would have wanted it to be if you were to take over it from another group.
+Make sure all group members names are included as comments in the beginning of the code. It needs
+to work, if not it will not be going to pass.
