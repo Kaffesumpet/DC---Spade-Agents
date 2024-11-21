@@ -4,7 +4,14 @@ import operator
 from spade.agent import Agent
 from spade.behaviour import FSMBehaviour, State
 
-# Define states that will be used by the agent
+# Students
+# Nicklas Kjellbom h22nikje@du.se
+# Filip Lindgren Dewari h22filil@du.se
+# Thomas Stabforsmo Norell h22thsta@du.se
+# Mona Tlili h22motli@du.se
+
+# Define states that will be used by the agent (Finite State Machine Behaviour)
+# https://spade-mas.readthedocs.io/en/latest/behaviours.html#finite-state-machine-behaviour
 STATE_ONE = "START"
 STATE_TWO = "GENERATE_QUESTION"
 STATE_THREE = "PRESENT_QUESTION"
@@ -17,7 +24,7 @@ STATE_SIX = "END"
 # Divison whole numbers are ensured by making numerator the result of denominator times another number.
 def generate_question():
     operators = {
-        1: ('+', operator.add, (1, 1000)),
+        1: ('+', operator.add, (1, 1000)), 
         2: ('-', operator.sub, (1, 1000)),
         3: ('*', operator.mul, (1, 12)),
         4: ('/', operator.floordiv, (1, 12)),
@@ -41,17 +48,16 @@ def generate_question():
 class MathBustersFSM(FSMBehaviour):
     async def on_start(self):
         print("Agent has successfully adapted the GameMaster persona")
+        print("[GameMaster] Welcome to MathBusters!")
 
     async def on_end(self):
         print("[GameMaster] Thanks for playing MathBusters, don't forget to do maths irl too!")
         await self.agent.stop()
-        
 
 # StartState is the game start menu
 # The player is given the option to decide how many questions the game will consist
 class StartState(State):
     async def run(self):
-        print("[GameMaster] Welcome to MathBusters!")
         while True:
             try:
                 max_questions = int(input("[GameMaster] How many questions would you like to answer? "))
@@ -127,8 +133,20 @@ class ScoreState(State):
 class EndState(State):
     async def run(self):
         """Displays the final score and ends the game."""
-        print(f"[GameMaster] Game over! Final score: {self.agent.points}")
-        self.kill()
+        print(f"[GameMaster] Final score: {self.agent.points}. Do you want to play again? (y/n)")
+        
+        # Get user input and handle it robustly
+        user_answer = input("Your answer: ").strip().lower()
+        
+        if user_answer == "y":
+            user_answer = None
+            self.set_next_state(STATE_ONE)  # Assuming STATE_ONE is a valid state constant
+        elif user_answer == "n":
+            print("[GameMaster] Thank you for playing! Goodbye!")
+            await self.agent.stop()   # Terminates the game
+        else:
+            print("[GameMaster] Invalid input. Please answer with 'y' or 'n'.")
+            await self.run()  # Prompt again if the input is invalid
 
 class MathBustersAgent(Agent):
     """
@@ -157,6 +175,8 @@ class MathBustersAgent(Agent):
         fsm.add_transition(source=STATE_FOUR, dest=STATE_THREE)  # Retry on wrong answer
         fsm.add_transition(source=STATE_FIVE, dest=STATE_TWO)  # Score -> Generate Question (Next question)
         fsm.add_transition(source=STATE_FIVE, dest=STATE_SIX)  # Score -> End
+        fsm.add_transition(source=STATE_SIX, dest=STATE_ONE)  # Score -> End
+
 
         self.add_behaviour(fsm) # Attach the FSM behaviour to the agent
 
