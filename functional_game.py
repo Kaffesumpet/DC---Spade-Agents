@@ -4,7 +4,7 @@ import operator
 from spade.agent import Agent
 from spade.behaviour import FSMBehaviour, State
 
-# Define states
+# Define states that will be used by the agent
 STATE_ONE = "START"
 STATE_TWO = "GENERATE_QUESTION"
 STATE_THREE = "PRESENT_QUESTION"
@@ -23,7 +23,10 @@ def generate_question():
     dice_roll = random.randint(1, 4)
     symbol, operation, bounds = operators[dice_roll]
 
-    # Only divisions that results in whole numbers is allowed.
+    """
+        Divison whole numbers are ensured by making numerator the result
+        of denominator times another number.
+    """
     if symbol == '/':
         num2 = random.randint(bounds[0], bounds[1])  
         num1 = num2 * random.randint(1, 12)
@@ -46,12 +49,13 @@ class MathBustersFSM(FSMBehaviour):
         print("[GameMaster] Thanks for playing MathBusters, don't forget to do maths irl too!")
         await self.agent.stop()
 
-# The starting state of the game
+"""
+    StartState could be seen as the start menu
+    The player is given the option to decide how many questions the game will consist
+"""
 class StartState(State):
     async def run(self):
         print("[GameMaster] Welcome to MathBusters!")
-        
-        # Prompt the user for the number of questions
         while True:
             try:
                 max_questions = int(input("[GameMaster] How many questions would you like to answer? "))
