@@ -13,6 +13,8 @@ STATE_FIVE = "SCORE"
 STATE_SIX = "END"
 
 # Function to generate simple math question aimed at kids age 10-12
+# All maths utilize appropriate bounds.
+# Divison whole numbers are ensured by making numerator the result of denominator times another number.
 def generate_question():
     operators = {
         1: ('+', operator.add, (1, 1000)),
@@ -23,18 +25,13 @@ def generate_question():
     dice_roll = random.randint(1, 4)
     symbol, operation, bounds = operators[dice_roll]
 
-    """
-        Divison whole numbers are ensured by making numerator the result
-        of denominator times another number.
-    """
     if symbol == '/':
-        num2 = random.randint(bounds[0], bounds[1])  
+        num2 = random.randint(bounds[0], bounds[1])
         num1 = num2 * random.randint(1, 12)
     elif symbol == '-':
         num1 = random.randint(bounds[0], bounds[1])
         num2 = random.randint(bounds[0], num1)
     else:
-        # For addition and multiplication, pick random numbers within bounds
         num1 = random.randint(bounds[0], bounds[1])
         num2 = random.randint(bounds[0], bounds[1])
 
@@ -48,11 +45,10 @@ class MathBustersFSM(FSMBehaviour):
     async def on_end(self):
         print("[GameMaster] Thanks for playing MathBusters, don't forget to do maths irl too!")
         await self.agent.stop()
+        
 
-"""
-    StartState could be seen as the start menu
-    The player is given the option to decide how many questions the game will consist
-"""
+# StartState is the game start menu
+# The player is given the option to decide how many questions the game will consist
 class StartState(State):
     async def run(self):
         print("[GameMaster] Welcome to MathBusters!")
@@ -72,7 +68,7 @@ class StartState(State):
         print(f"[GameMaster] Great! You'll answer {self.agent.max_questions} questions. Let's get started!")
         
         # Set the next state
-        self.set_next_state(STATE_TWO)
+        self.set_next_state(STATE_TWO) # Start -> Generate Question
 
 # The state responsible for generating a new question
 class GenerateQuestionState(State):
@@ -83,14 +79,14 @@ class GenerateQuestionState(State):
     """
     async def run(self):
         self.agent.num1, self.agent.symbol, self.agent.num2, self.agent.correct_answer = generate_question()
-        self.agent.attempts = 3 
-        self.set_next_state(STATE_THREE)
+        self.agent.attempts = 3
+        self.set_next_state(STATE_THREE) # Generate Question -> Present Question
 
 # The state where the question is presented to the user
 class PresentQuestionState(State):
     async def run(self):
         print(f"[GameMaster] Question: What is {self.agent.num1} {self.agent.symbol} {self.agent.num2}?")
-        self.set_next_state(STATE_FOUR)
+        self.set_next_state(STATE_FOUR) # Present Question -> Check Answer
 
 # The state where the user's answer is checked
 class CheckAnswerState(State):
@@ -104,29 +100,29 @@ class CheckAnswerState(State):
             user_answer = int(input("Your answer: "))
             if user_answer == self.agent.correct_answer:
                 print("[GameMaster] Correct!")
-                self.set_next_state(STATE_FIVE)  # Proceed to scoring
+                self.set_next_state(STATE_FIVE)  # Check Answer -> Score
             else:
                 self.agent.attempts -= 1
                 print(f"[GameMaster] Wrong! You have {self.agent.attempts} attempts left.")
                 if self.agent.attempts > 0:
                     self.agent.points -= 0.25
-                    self.set_next_state(STATE_THREE)  # Retry the same question
+                    self.set_next_state(STATE_THREE) # Retry on wrong answer
                 else:
                     print(f"[GameMaster] The correct answer was {self.agent.correct_answer}.")
                     self.agent.points -= 0.5
-                    self.set_next_state(STATE_FIVE)  # Move to scoring
+                    self.set_next_state(STATE_FIVE)  # Check Answer -> Score
         except ValueError:
             print("[GameMaster] Invalid input. Please enter a number.")
-            self.set_next_state(STATE_THREE)  # Retry the same question
+            self.set_next_state(STATE_THREE)  # Retry the same question (No loses of attempts)
 
 # The state of the game
 class ScoreState(State):
     async def run(self):
         if self.agent.current_question < self.agent.max_questions:
             self.agent.current_question += 1
-            self.set_next_state(STATE_TWO)
+            self.set_next_state(STATE_TWO) # Score -> Generate Question (Next question)
         else:
-            self.set_next_state(STATE_SIX)
+            self.set_next_state(STATE_SIX) # Score -> End
 
 class EndState(State):
     async def run(self):
@@ -145,7 +141,6 @@ class MathBustersAgent(Agent):
         self.points = 0  # Value is chosen by the player
         self.current_question = 1
         self.attempts = 3
-        
         
         fsm = MathBustersFSM()
         fsm.add_state(name=STATE_ONE, state=StartState(), initial=True)
