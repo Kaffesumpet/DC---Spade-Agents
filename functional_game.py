@@ -19,31 +19,6 @@ STATE_FOUR = "CHECK_ANSWER"
 STATE_FIVE = "SCORE"
 STATE_SIX = "END"
 
-# Function to generate simple math question aimed at kids age 10-12
-# All maths utilize appropriate bounds.
-# Divison whole numbers are ensured by making numerator the result of denominator times another number.
-# def generate_question():
-#     operators = {
-#         1: ('+', operator.add, (1, 1000)), 
-#         2: ('-', operator.sub, (1, 1000)),
-#         3: ('*', operator.mul, (1, 12)),
-#         4: ('/', operator.floordiv, (1, 12)),
-#     }
-#     dice_roll = random.randint(1, 4)
-#     symbol, operation, bounds = operators[dice_roll]
-
-#     if symbol == '/':
-#         num2 = random.randint(bounds[0], bounds[1])
-#         num1 = num2 * random.randint(1, 12)
-#     elif symbol == '-':
-#         num1 = random.randint(bounds[0], bounds[1])
-#         num2 = random.randint(bounds[0], num1)
-#     else:
-#         num1 = random.randint(bounds[0], bounds[1])
-#         num2 = random.randint(bounds[0], bounds[1])
-
-#     return num1, symbol, num2, operation(num1, num2)
-
 # Define a custom FSMBehaviour for managing the game states
 class MathBustersFSM(FSMBehaviour):
     async def on_start(self):
@@ -66,13 +41,13 @@ class StartState(State):
                 break
             except ValueError as e:
                 print(f"[GameMaster] Invalid input: {e}. Please enter a positive integer.")
-        
+
         # Set the shared attributes in the agent
         self.agent.max_questions = max_questions
         self.agent.points = max_questions
-        
+
         print(f"[GameMaster] Great! You'll answer {self.agent.max_questions} questions. Let's get started!")
-        
+
         # Set the next state
         self.set_next_state(STATE_TWO) # Start -> Generate Question
 
@@ -160,16 +135,15 @@ class EndState(State):
     async def run(self):
         """Displays the final score and ends the game."""
         print(f"[GameMaster] Final score: {self.agent.points}. Do you want to play again? (y/n)")
-        
-        # Get user input and handle it robustly
+
         user_answer = input("Your answer: ").strip().lower()
-        
+
         if user_answer == "y":
             user_answer = None
-            self.set_next_state(STATE_ONE)  # Assuming STATE_ONE is a valid state constant
+            self.set_next_state(STATE_ONE)
         elif user_answer == "n":
             print("[GameMaster] Thank you for playing! Goodbye!")
-            await self.agent.stop()   # Terminates the game
+            await self.agent.stop() # Terminates the game
         else:
             print("[GameMaster] Invalid input. Please answer with 'y' or 'n'.")
             await self.run()  # Prompt again if the input is invalid
@@ -185,7 +159,7 @@ class MathBustersAgent(Agent):
         self.points = 0  # Value is chosen by the player
         self.current_question = 1
         self.attempts = 3
-        
+
         fsm = MathBustersFSM()
         fsm.add_state(name=STATE_ONE, state=StartState(), initial=True)
         fsm.add_state(name=STATE_TWO, state=GenerateQuestionState())
