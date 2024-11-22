@@ -22,27 +22,27 @@ STATE_SIX = "END"
 # Function to generate simple math question aimed at kids age 10-12
 # All maths utilize appropriate bounds.
 # Divison whole numbers are ensured by making numerator the result of denominator times another number.
-def generate_question():
-    operators = {
-        1: ('+', operator.add, (1, 1000)), 
-        2: ('-', operator.sub, (1, 1000)),
-        3: ('*', operator.mul, (1, 12)),
-        4: ('/', operator.floordiv, (1, 12)),
-    }
-    dice_roll = random.randint(1, 4)
-    symbol, operation, bounds = operators[dice_roll]
+# def generate_question():
+#     operators = {
+#         1: ('+', operator.add, (1, 1000)), 
+#         2: ('-', operator.sub, (1, 1000)),
+#         3: ('*', operator.mul, (1, 12)),
+#         4: ('/', operator.floordiv, (1, 12)),
+#     }
+#     dice_roll = random.randint(1, 4)
+#     symbol, operation, bounds = operators[dice_roll]
 
-    if symbol == '/':
-        num2 = random.randint(bounds[0], bounds[1])
-        num1 = num2 * random.randint(1, 12)
-    elif symbol == '-':
-        num1 = random.randint(bounds[0], bounds[1])
-        num2 = random.randint(bounds[0], num1)
-    else:
-        num1 = random.randint(bounds[0], bounds[1])
-        num2 = random.randint(bounds[0], bounds[1])
+#     if symbol == '/':
+#         num2 = random.randint(bounds[0], bounds[1])
+#         num1 = num2 * random.randint(1, 12)
+#     elif symbol == '-':
+#         num1 = random.randint(bounds[0], bounds[1])
+#         num2 = random.randint(bounds[0], num1)
+#     else:
+#         num1 = random.randint(bounds[0], bounds[1])
+#         num2 = random.randint(bounds[0], bounds[1])
 
-    return num1, symbol, num2, operation(num1, num2)
+#     return num1, symbol, num2, operation(num1, num2)
 
 # Define a custom FSMBehaviour for managing the game states
 class MathBustersFSM(FSMBehaviour):
@@ -83,8 +83,34 @@ class GenerateQuestionState(State):
         Initializes the number of attempts for the current question.
         Transitions to the state where the question is presented.
     """
+    # Function to generate simple math question aimed at kids age 10-12
+    # All maths utilize appropriate bounds.
+    # Divison whole numbers are ensured by making numerator the result of denominator times another number.
+    def generate_question(self):
+        operators = {
+            1: ('+', operator.add, (1, 1000)), 
+            2: ('-', operator.sub, (1, 1000)),
+            3: ('*', operator.mul, (1, 12)),
+            4: ('/', operator.floordiv, (1, 12)),
+        }
+
+        dice_roll = random.randint(1, 4)
+        symbol, operation, bounds = operators[dice_roll]
+
+        if symbol == '/':
+            num2 = random.randint(bounds[0], bounds[1])
+            num1 = num2 * random.randint(1, 12)
+        elif symbol == '-':
+            num1 = random.randint(bounds[0], bounds[1])
+            num2 = random.randint(bounds[0], num1)
+        else:
+            num1 = random.randint(bounds[0], bounds[1])
+            num2 = random.randint(bounds[0], bounds[1])
+
+        return num1, symbol, num2, operation(num1, num2)
+
     async def run(self):
-        self.agent.num1, self.agent.symbol, self.agent.num2, self.agent.correct_answer = generate_question()
+        self.agent.num1, self.agent.symbol, self.agent.num2, self.agent.correct_answer = self.generate_question()
         self.agent.attempts = 3
         self.set_next_state(STATE_THREE) # Generate Question -> Present Question
 
