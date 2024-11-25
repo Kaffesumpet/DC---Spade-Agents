@@ -17,7 +17,7 @@ STATE_TWO = "GENERATE_QUESTION"
 STATE_THREE = "PRESENT_QUESTION"
 STATE_FOUR = "CHECK_ANSWER"
 STATE_FIVE = "SCORE"
-STATE_SIX = "END"
+STATE_SIX = "END" 
 
 # Define a custom FSMBehaviour for managing the game states
 class MathBustersFSM(FSMBehaviour):
@@ -26,7 +26,7 @@ class MathBustersFSM(FSMBehaviour):
         print("[GameMaster] Welcome to MathBusters!")
 
     async def on_end(self):
-        print("[GameMaster] Thanks for playing MathBusters, don't forget to do maths irl too!")
+        print("[GameMaster] Thanks for playing MathBusters, don't forget to do maths in real life as well!")
         await self.agent.stop()
 
 # StartState is the game start menu
@@ -69,8 +69,7 @@ class GenerateQuestionState(State):
             4: ('/', operator.floordiv, (1, 12)),
         }
 
-        dice_roll = random.randint(1, 4)
-        symbol, operation, bounds = operators[dice_roll]
+        symbol, operation, bounds = operators[random.randint(1, 4)]
 
         if symbol == '/':
             num2 = random.randint(bounds[0], bounds[1])
