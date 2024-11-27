@@ -1,14 +1,14 @@
-import asyncio
-import random
-import operator
-from spade.agent import Agent
-from spade.behaviour import FSMBehaviour, State
-
 # Students
 # Nicklas Kjellbom h22nikje@du.se
 # Filip Lindgren Dewari h22filil@du.se
 # Thomas Stabforsmo Norell h22thsta@du.se
 # Mona Tlili h22motli@du.se
+
+import asyncio
+import random
+import operator
+from spade.agent import Agent
+from spade.behaviour import FSMBehaviour, State
 
 # Define states that will be used by the agent (Finite State Machine Behaviour)
 # https://spade-mas.readthedocs.io/en/latest/behaviours.html#finite-state-machine-behaviour
