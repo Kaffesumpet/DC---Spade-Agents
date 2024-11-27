@@ -139,6 +139,7 @@ class EndState(State):
 
         if user_answer == "y":
             user_answer = None
+            self.agent.current_question = 1
             self.set_next_state(STATE_ONE)
         elif user_answer == "n":
             print("[GameMaster] Thank you for playing! Goodbye!")
